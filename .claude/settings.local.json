@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'docs: add quick start guide for downloading and running the app *)",
+      "Bash(git commit -m 'docs: add comprehensive README with project overview *)",
+      "Bash(git push *)"
     ]
   }
 }
