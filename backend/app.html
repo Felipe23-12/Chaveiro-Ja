@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaveiro Já</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
+
+        .container { max-width: 480px; margin: 0 auto; background: white; min-height: 100vh; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+
+        .header { background: #fff; padding: 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; }
+        .header h1 { font-size: 24px; font-weight: 700; color: #333; }
+
+        .content { flex: 1; overflow-y: auto; padding: 0; }
+
+        .section { display: none; padding: 20px; }
+        .section.active { display: block; }
+
+        /* LOGIN */
+        .login-section { padding: 40px 20px; display: flex !important; flex-direction: column; justify-content: center; }
+        .login-card { background: white; }
+        .login-card h2 { color: #333; margin-bottom: 20px; font-size: 20px; }
+        .login-card input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .login-btn { width: 100%; padding: 14px; background: #4a90e2; color: white; border: none; border-radius: 6px; font-weight: 700; margin-top: 20px; cursor: pointer; }
+        .quick-login { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+        .quick-login p { text-align: center; margin-bottom: 10px; font-weight: 600; color: #666; }
+        .quick-btn { width: 100%; padding: 10px; margin: 5px 0; background: #f0f0f0; color: #333; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+        /* INÍCIO */
+        .inicio-section { padding: 0; }
+        .lock-status { display: flex; gap: 10px; padding: 20px; }
+        .lock-btn { flex: 1; padding: 12px; border: 2px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .lock-btn.active { border-color: #4a90e2; background: #e8f0ff; color: #4a90e2; }
+
+        .search-box { padding: 15px 20px; border-bottom: 1px solid #eee; }
+        .search-box input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+
+        .services-grid { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .service-card { padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
+        .service-card:active { transform: scale(0.95); }
+        .service-icon { font-size: 40px; margin-bottom: 10px; }
+        .service-name { font-weight: 600; font-size: 14px; margin-bottom: 5px; }
+        .service-desc { font-size: 11px; color: #666; }
+        .service-price { font-size: 11px; color: #999; margin-top: 5px; }
+
+        .service-residencial { background: #e3f2fd; }
+        .service-automotiva { background: #fff3e0; }
+        .service-tetra { background: #f3e5f5; }
+        .service-eletronica { background: #e8f5e9; }
+        .service-carro { background: #fce4ec; }
+        .service-moto { background: #e0f2f1; border: 2px solid #FFD700; }
+
+        .form-section { padding: 20px; border-top: 1px solid #eee; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+
+        .location-btn { background: white; color: #FFD700; border: none; cursor: pointer; font-weight: 600; padding: 8px 0; font-size: 14px; }
+
+        .warning { background: #ffebee; border-left: 4px solid #e63946; padding: 15px; border-radius: 4px; margin-top: 15px; }
+        .warning-icon { color: #e63946; font-weight: 700; }
+        .warning-title { color: #e63946; font-weight: 700; }
+        .warning-text { color: #666; font-size: 13px; }
+
+        /* MAPA */
+        .map-section { padding: 0; }
+        #map { width: 100%; height: 600px; }
+
+        /* HISTÓRICO */
+        .history-section { padding: 20px; }
+        .history-item { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #4a90e2; }
+        .history-time { font-weight: 700; color: #333; margin-bottom: 5px; }
+        .history-type { color: #666; font-size: 13px; }
+        .history-status { color: #4a90e2; font-size: 12px; margin-top: 5px; }
+
+        /* NAVBAR */
+        .navbar { display: flex; gap: 0; border-top: 1px solid #ddd; background: white; }
+        .nav-btn { flex: 1; padding: 12px; text-align: center; cursor: pointer; border: none; background: white; color: #666; font-size: 18px; transition: all 0.3s; border-top: 3px solid transparent; }
+        .nav-btn.active { color: #FFD700; border-top-color: #FFD700; }
+
+        .submit-btn { width: 100%; padding: 14px; background: #4a90e2; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 15px; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>🔐 Chaveiro Já</h1>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content">
+            <!-- LOGIN -->
+            <div class="section login-section active" id="loginSection">
+                <div class="login-card">
+                    <h2>Login</h2>
+                    <input type="email" id="loginEmail" placeholder="Email:" value="joao@teste.com">
+                    <input type="password" id="loginPass" placeholder="Senha:" value="Teste123!">
+                    <button class="login-btn" onclick="fazerLogin()">✅ Entrar</button>
+                    <div id="loginMsg" style="margin-top: 15px;"></div>
+
+                    <div class="quick-login">
+                        <p>📋 Contas de Teste Disponíveis</p>
+                        <p style="font-size: 12px; color: #999;">Clique para usar uma conta:</p>
+                        <button class="quick-btn" onclick="quickLogin('joao@teste.com')">👤 João (Cliente)</button>
+                        <button class="quick-btn" onclick="quickLogin('maria@teste.com')">👩‍💼 Maria (Cliente)</button>
+                        <button class="quick-btn" onclick="quickLogin('pedro@chaveiroja.com')">🔧 Pedro (Chaveiro)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INÍCIO -->
+            <div class="section inicio-section" id="inicioSection">
+                <!-- Status da trava -->
+                <div class="lock-status">
+                    <button class="lock-btn active" onclick="selecionarLock('aberta')">Aberta</button>
+                    <button class="lock-btn" onclick="selecionarLock('fechada')">Fechada</button>
+                </div>
+
+                <!-- Busca -->
+                <div class="search-box">
+                    <input type="text" placeholder="🔍 Consultar disponibilidade da chave" id="searchInput">
+                </div>
+
+                <!-- Grid de serviços -->
+                <div class="services-grid">
+                    <div class="service-card service-residencial" onclick="selecionarServico('residencial')">
+                        <div class="service-icon">🏠</div>
+                        <div class="service-name">Abertura Residencial</div>
+                        <div class="service-desc">Abrir fechadura de casa ou apartamento</div>
+                        <div class="service-price">Valor informado após a confirmação</div>
+                    </div>
+
+                    <div class="service-card service-automotiva" onclick="selecionarServico('automotiva')">
+                        <div class="service-icon">🚗</div>
+                        <div class="service-name">Abertura Automotiva</div>
+                        <div class="service-desc">Abrir veículo (carro ou moto)</div>
+                        <div class="service-price">Valor informado após a confirmação</div>
+                    </div>
+
+                    <div class="service-card service-tetra" onclick="selecionarServico('tetra')">
+                        <div class="service-icon">🔑</div>
+                        <div class="service-name">Abertura Fechadura Tetra</div>
+                        <div class="service-desc">Fechadura tetra / tetrachave</div>
+                        <div class="service-price">Valor informado após a confirmação</div>
+                    </div>
+
+                    <div class="service-card service-eletronica" onclick="selecionarServico('eletronica')">
+                        <div class="service-icon">🔐</div>
+                        <div class="service-name">Abertura Fechadura Eletrônica</div>
+                        <div class="service-desc">Fechadura eletrônica / digital</div>
+                        <div class="service-price">Valor informado após a confirmação</div>
+                    </div>
+
+                    <div class="service-card service-carro" onclick="selecionarServico('confeccao-carro')">
+                        <div class="service-icon">🔑</div>
+                        <div class="service-name">Confecção de Chave de Carro</div>
+                        <div class="service-desc">Chave original ou paralela para o veículo (modo aplicativo)</div>
+                        <div class="service-price">Valor informado após a confirmação</div>
+                    </div>
+
+                    <div class="service-card service-moto" onclick="selecionarServico('confeccao-moto')">
+                        <div class="service-icon">🏍️</div>
+                        <div class="service-name">Confecção de Chave de Moto</div>
+                        <div class="service-desc">Chave original ou paralela, simples ou presença (modo aplicativo)</div>
+                        <div class="service-price">Valor informado após a confirmação</div>
+                    </div>
+                </div>
+
+                <!-- Formulário -->
+                <div class="form-section hidden" id="formSection">
+                    <h3 style="color: #333; margin-bottom: 15px;">Endereço</h3>
+                    <div class="form-group">
+                        <input type="text" id="endereco" placeholder="Digite seu endereço...">
+                    </div>
+                    <button class="location-btn" onclick="usarLocalizacao()">📍 Usar minha localização atual</button>
+
+                    <h3 style="color: #333; margin: 20px 0 15px 0;">Descrição (opcional)</h3>
+                    <div class="form-group">
+                        <textarea id="descricao" placeholder="Ex: Perdi a única chave do carro..."></textarea>
+                    </div>
+
+                    <h3 style="color: #333; margin: 20px 0 15px 0;">Identificação do local do atendimento</h3>
+                    <div class="form-group">
+                        <label>Placa do veículo (opcional)</label>
+                        <input type="text" id="placa" placeholder="ABC1D23">
+                    </div>
+                    <p style="font-size: 12px; color: #666; margin-top: 5px;">Apartamentos e veículos diferentes são atendimentos distintos. A proximidade no mapa, sozinha, não gera bloqueio de segurança.</p>
+
+                    <div id="warningArea"></div>
+
+                    <button class="submit-btn" onclick="confirmarChamada()">📞 CHAMAR CHAVEIRO</button>
+                </div>
+            </div>
+
+            <!-- MAPA -->
+            <div class="section map-section" id="mapaSection">
+                <div id="map"></div>
+            </div>
+
+            <!-- HISTÓRICO -->
+            <div class="section history-section" id="historicoSection">
+                <h2 style="color: #333; margin-bottom: 15px;">🕐 Histórico</h2>
+                <div id="historyContent">
+                    <p style="text-align: center; color: #999;">Nenhum serviço ainda</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAVBAR -->
+        <div class="navbar">
+            <button class="nav-btn active" onclick="mudaSecao('inicio')">🏠 Início</button>
+            <button class="nav-btn" onclick="mudaSecao('mapa')">📍 Mapa</button>
+            <button class="nav-btn" onclick="mudaSecao('historico')">🕐 Histórico</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        let currentUser = null;
+        let map = null;
+        let servicoSelecionado = null;
+        let historico = [];
+
+        function quickLogin(email) {
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('loginPass').value = 'Teste123!';
+            fazerLogin();
+        }
+
+        async function fazerLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password: pass })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    document.getElementById('loginMsg').innerHTML = '<p style="color: #e63946; font-weight: 600;">❌ Erro no login</p>';
+                    return;
+                }
+
+                currentUser = data;
+                document.getElementById('loginMsg').innerHTML = '<p style="color: #4caf50; font-weight: 600;">✅ Login realizado!</p>';
+
+                setTimeout(() => {
+                    document.getElementById('loginSection').classList.remove('active');
+                    document.getElementById('inicioSection').classList.add('active');
+                    document.querySelector('.nav-btn').classList.add('active');
+                }, 800);
+
+            } catch (e) {
+                document.getElementById('loginMsg').innerHTML = '<p style="color: #e63946; font-weight: 600;">❌ Erro: ' + e.message + '</p>';
+            }
+        }
+
+        function mudaSecao(secao) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            if (secao === 'inicio') {
+                document.getElementById('inicioSection').classList.add('active');
+                document.querySelectorAll('.nav-btn')[0].classList.add('active');
+            } else if (secao === 'mapa') {
+                document.getElementById('mapaSection').classList.add('active');
+                document.querySelectorAll('.nav-btn')[1].classList.add('active');
+                if (!map) initMap();
+            } else if (secao === 'historico') {
+                document.getElementById('historicoSection').classList.add('active');
+                document.querySelectorAll('.nav-btn')[2].classList.add('active');
+                renderHistorico();
+            }
+        }
+
+        function selecionarLock(tipo) {
+            document.querySelectorAll('.lock-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function selecionarServico(tipo) {
+            servicoSelecionado = tipo;
+            document.getElementById('formSection').classList.remove('hidden');
+            document.querySelector('.services-grid').style.display = 'none';
+            document.querySelector('.search-box').style.display = 'none';
+            document.querySelector('.lock-status').style.display = 'none';
+        }
+
+        function usarLocalizacao() {
+            document.getElementById('endereco').value = 'São Paulo, SP - Localização atual';
+            document.getElementById('warningArea').innerHTML = '';
+        }
+
+        function confirmarChamada() {
+            const endereco = document.getElementById('endereco').value;
+            const descricao = document.getElementById('descricao').value;
+
+            if (!endereco) {
+                alert('Por favor, indique o endereço');
+                return;
+            }
+
+            // Adicionar ao histórico
+            const agora = new Date();
+            historico.push({
+                tipo: servicoSelecionado,
+                endereco: endereco,
+                descricao: descricao,
+                data: agora.toLocaleString('pt-BR'),
+                status: '✅ Confirmado'
+            });
+
+            alert('✅ Chamada confirmada!\n\nEsperando chaveiro...');
+
+            // Resetar formulário
+            document.getElementById('endereco').value = '';
+            document.getElementById('descricao').value = '';
+            document.getElementById('placa').value = '';
+            document.getElementById('formSection').classList.add('hidden');
+            document.querySelector('.services-grid').style.display = 'grid';
+            document.querySelector('.search-box').style.display = 'block';
+            document.querySelector('.lock-status').style.display = 'flex';
+        }
+
+        function initMap() {
+            if (map) return;
+
+            map = L.map('map').setView([-23.5505, -46.6333], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap',
+                maxZoom: 19
+            }).addTo(map);
+
+            L.marker([-23.5505, -46.6333], {
+                icon: L.divIcon({
+                    html: '<div style="background: #4a90e2; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">📍</div>',
+                    iconSize: [30, 30]
+                })
+            }).addTo(map).bindPopup('Sua localização');
+        }
+
+        function renderHistorico() {
+            const content = document.getElementById('historyContent');
+            if (historico.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #999;">Nenhum serviço ainda</p>';
+                return;
+            }
+
+            let html = '';
+            historico.forEach(item => {
+                html += `
+                    <div class="history-item">
+                        <div class="history-time">${item.data}</div>
+                        <div class="history-type">${item.endereco}</div>
+                        <div class="history-status">${item.status}</div>
+                    </div>
+                `;
+            });
+            content.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
