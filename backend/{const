@@ -1,0 +1,1 @@
+const express = require('express'); const cors = require('cors'); const app = express(); app.use(cors({origin: '*'})); app.use(express.json()); app.get('/health', (req, res) = 'ok'})); app.post('/api/auth/login', (req, res) = {email, password} = req.body; if(email === 'joao@teste.com' 
